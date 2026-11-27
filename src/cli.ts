@@ -2,11 +2,11 @@
 // The command line: reads the project from disk, runs the core, writes the result.
 import {
 	existsSync,
+	lstatSync,
 	mkdirSync,
 	readdirSync,
 	readFileSync,
 	realpathSync,
-	rmSync,
 	writeFileSync,
 } from 'node:fs'
 import { dirname, join, relative, sep } from 'node:path'
@@ -33,6 +33,16 @@ const read = (path: string) => (existsSync(path) ? readFileSync(path, 'utf8') : 
 /** Whether a path, with every symbolic link followed, is still inside a folder. */
 const within = (folder: string, path: string) =>
 	!relative(realpathSync(folder), realpathSync(path)).startsWith('..')
+
+/** The first symbolic link on the way from a folder down to a path inside it, if there is one. */
+function firstLink(folder: string, path: string): string | undefined {
+	let current = folder
+	for (const part of ['', ...path.split('/')]) {
+		current = join(current, part)
+		if (lstatSync(current, { throwIfNoEntry: false })?.isSymbolicLink()) return current
+	}
+	return undefined
+}
 
 function load(root: string): { config?: Config; result?: Result; problems: Problem[] } {
 	const problems: Problem[] = []
@@ -99,24 +109,21 @@ function main(): number {
 		return [...states.values()].every((state) => state === 'current') ? 0 : 1
 	}
 
-	// tangle: drop targets the last run wrote and this one does not, then write.
+	// tangle: write the targets and the lock. It never deletes; it names files the last run wrote and this one did not.
+	const paths = [...result.targets.keys(), LOCK_FILE]
+	const link = paths.map((path) => firstLink(out, path)).find((found) => found !== undefined)
+	if (link) {
+		console.error(`${link}:1: this is a symbolic link; canon does not write through links, so remove it`)
+		return 1
+	}
 	if (oldLock) {
 		for (const { path } of (JSON.parse(oldLock) as { targets: { path: string }[] }).targets) {
-			// The lock is a file on disk that anyone can edit, so never follow it out of the output folder.
-			const file = join(out, path)
-			const ours = path.endsWith('.md') && !result.targets.has(path)
-			if (ours && existsSync(file) && within(out, file)) rmSync(file)
+			if (!result.targets.has(path)) console.log(`canon: ${config.out}/${path} is no longer built; delete it`)
 		}
 	}
-	mkdirSync(out, { recursive: true })
 	for (const [path, text] of result.targets) {
-		const file = join(out, path)
-		mkdirSync(dirname(file), { recursive: true })
-		if (!within(out, existsSync(file) ? file : dirname(file))) {
-			console.error(`${config.out}/${path}:1: this path links outside the output folder; remove the link`)
-			return 1
-		}
-		writeFileSync(file, text)
+		mkdirSync(dirname(join(out, path)), { recursive: true })
+		writeFileSync(join(out, path), text)
 	}
 	writeFileSync(lockPath, lockText(result.lock))
 	console.log(`canon: wrote ${result.targets.size} target(s) and ${LOCK_FILE} to ${config.out}/`)

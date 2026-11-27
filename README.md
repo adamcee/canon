@@ -100,7 +100,7 @@ The `id` header line and anchor lines never reach a target.
 | Command | Does |
 |---|---|
 | `canon check [folder]` | Reports every mistake with its file, line and fix. Writes nothing. |
-| `canon tangle [folder]` | Checks, then writes the targets and the lock. |
+| `canon tangle [folder]` | Checks, then writes the targets and the lock. It never deletes a file; it names any target it no longer builds. |
 | `canon status [folder]` | Reports each target as `current`, `stale`, `edited` or `missing`. |
 
 Each exits with 1 when something is wrong, so `canon status` works as a CI check. Mistakes read like this:
