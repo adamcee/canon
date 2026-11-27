@@ -1,6 +1,14 @@
 #!/usr/bin/env node
 // The command line: reads the project from disk, runs the core, writes the result.
-import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import {
+	existsSync,
+	mkdirSync,
+	readdirSync,
+	readFileSync,
+	realpathSync,
+	rmSync,
+	writeFileSync,
+} from 'node:fs'
 import { dirname, join, relative, sep } from 'node:path'
 import type { Problem } from './source.ts'
 import {
@@ -22,6 +30,10 @@ const USAGE = `usage: canon <command> [project folder]
 
 const read = (path: string) => (existsSync(path) ? readFileSync(path, 'utf8') : undefined)
 
+/** Whether a path, with every symbolic link followed, is still inside a folder. */
+const within = (folder: string, path: string) =>
+	!relative(realpathSync(folder), realpathSync(path)).startsWith('..')
+
 function load(root: string): { config?: Config; result?: Result; problems: Problem[] } {
 	const problems: Problem[] = []
 	const configText = read(join(root, CONFIG_FILE))
@@ -41,7 +53,13 @@ function load(root: string): { config?: Config; result?: Result; problems: Probl
 		for (const name of readdirSync(join(root, folder), { recursive: true, encoding: 'utf8' })) {
 			if (!name.endsWith('.md')) continue
 			const path = join(folder, name).split(sep).join('/')
-			files.set(path, readFileSync(join(root, path), 'utf8'))
+			if (within(root, join(root, path))) files.set(path, readFileSync(join(root, path), 'utf8'))
+			else
+				problems.push({
+					file: path,
+					line: 1,
+					message: 'this links to a file outside the project; copy the file in',
+				})
 		}
 	}
 	const result = tangle(config, files)
@@ -90,11 +108,16 @@ function main(): number {
 				rmSync(join(out, path), { force: true })
 		}
 	}
-	for (const [path, text] of result.targets) {
-		mkdirSync(dirname(join(out, path)), { recursive: true })
-		writeFileSync(join(out, path), text)
-	}
 	mkdirSync(out, { recursive: true })
+	for (const [path, text] of result.targets) {
+		const file = join(out, path)
+		mkdirSync(dirname(file), { recursive: true })
+		if (!within(out, existsSync(file) ? file : dirname(file))) {
+			console.error(`${config.out}/${path}:1: this path links outside the output folder; remove the link`)
+			return 1
+		}
+		writeFileSync(file, text)
+	}
 	writeFileSync(lockPath, lockText(result.lock))
 	console.log(`canon: wrote ${result.targets.size} target(s) and ${LOCK_FILE} to ${config.out}/`)
 	return 0
