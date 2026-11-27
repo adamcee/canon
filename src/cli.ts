@@ -103,9 +103,9 @@ function main(): number {
 	if (oldLock) {
 		for (const { path } of (JSON.parse(oldLock) as { targets: { path: string }[] }).targets) {
 			// The lock is a file on disk that anyone can edit, so never follow it out of the output folder.
-			const inside = !relative(out, join(out, path)).startsWith('..')
-			if (inside && path.endsWith('.md') && !result.targets.has(path))
-				rmSync(join(out, path), { force: true })
+			const file = join(out, path)
+			const ours = path.endsWith('.md') && !result.targets.has(path)
+			if (ours && existsSync(file) && within(out, file)) rmSync(file)
 		}
 	}
 	mkdirSync(out, { recursive: true })
