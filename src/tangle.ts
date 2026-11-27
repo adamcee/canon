@@ -72,7 +72,9 @@ export function readConfig(text: string, problems: Problem[]): Config | undefine
 	const config = { sources: sources.map((s) => posix.normalize(s)), targets, out: posix.normalize(out) }
 	const overlaps = (folder: string) =>
 		folder === config.out || folder.startsWith(`${config.out}/`) || config.out.startsWith(`${folder}/`)
-	if (config.out === '.' || config.out.startsWith('..') || config.sources.some(overlaps)) {
+	const outside = (folder: string) => folder.startsWith('..') || posix.isAbsolute(folder)
+	if (config.sources.some(outside)) return fail('every `sources` folder must be inside the project folder')
+	if (config.out === '.' || outside(config.out) || config.sources.some(overlaps)) {
 		return fail('`out` must be a folder of its own, outside every `sources` folder')
 	}
 	return config

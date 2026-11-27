@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // The command line: reads the project from disk, runs the core, writes the result.
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
-import { dirname, join, sep } from 'node:path'
+import { dirname, join, relative, sep } from 'node:path'
 import type { Problem } from './source.ts'
 import {
 	CONFIG_FILE,
@@ -84,7 +84,10 @@ function main(): number {
 	// tangle: drop targets the last run wrote and this one does not, then write.
 	if (oldLock) {
 		for (const { path } of (JSON.parse(oldLock) as { targets: { path: string }[] }).targets) {
-			if (!result.targets.has(path)) rmSync(join(out, path), { force: true })
+			// The lock is a file on disk that anyone can edit, so never follow it out of the output folder.
+			const inside = !relative(out, join(out, path)).startsWith('..')
+			if (inside && path.endsWith('.md') && !result.targets.has(path))
+				rmSync(join(out, path), { force: true })
 		}
 	}
 	for (const [path, text] of result.targets) {
