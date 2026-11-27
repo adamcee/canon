@@ -1,0 +1,4 @@
+canon: 1
+sources: [agents, shared]
+targets: ["agents/*.md"]
+out: dist

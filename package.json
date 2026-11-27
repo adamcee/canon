@@ -1,0 +1,32 @@
+{
+	"name": "canon-md",
+	"version": "0.1.0",
+	"description": "Manage your markdown rules for your agents.",
+	"type": "module",
+	"private": true,
+	"bin": {
+		"canon": "src/cli.ts"
+	},
+	"engines": {
+		"node": ">=24"
+	},
+	"scripts": {
+		"canon": "node src/cli.ts",
+		"lint": "biome check .",
+		"format": "biome check --write .",
+		"typecheck": "tsc --noEmit",
+		"test": "vitest run",
+		"check": "biome check . && tsc --noEmit && vitest run"
+	},
+	"dependencies": {
+		"mdast-util-from-markdown": "^2.1.0",
+		"yaml": "^2.9.1"
+	},
+	"devDependencies": {
+		"@types/mdast": "^4.0.4",
+		"@types/node": "^26.6.11",
+		"typescript": "^7.0.2",
+		"vitest": "^5.1.2",
+		"@biomejs/biome": "2.6.9"
+	}
+}
