@@ -1,0 +1,30 @@
+{
+  "canon": 1,
+  "hash": "sha256",
+  "targets": [
+    {
+      "path": "agents/design_critic.md",
+      "hash": "cee6294735ce2bd4fea19245852b6eb07cbe8ede7e72a4bfc829f586e4a39d0f",
+      "sources": [
+        {"id":"agents/design_critic","path":"agents/design_critic.md","hash":"0731ab6299e801d6bf5e787c2643a5ea65db29e253788469a89591f7b24d3fac","lines":[[1,6],[14,63]]},
+        {"id":"core-mandates","path":"shared/core-mandates.md","hash":"47741b7ffff629ae14ba6bc5845d86131dc93d2ea7feed2aae28d4dc4ddf9659","lines":[[7,13]]}
+      ]
+    },
+    {
+      "path": "agents/structural.md",
+      "hash": "f0d4fe6faee4e388366b7d653fe353a9b09f45ca1bf5dae29280e351cda7da87",
+      "sources": [
+        {"id":"agents/structural","path":"agents/structural.md","hash":"4bc0ef1262516b70b092b313450f722009327c9665048f38eb7942da24bfb650","lines":[[1,6],[14,65]]},
+        {"id":"core-mandates","path":"shared/core-mandates.md","hash":"47741b7ffff629ae14ba6bc5845d86131dc93d2ea7feed2aae28d4dc4ddf9659","lines":[[7,13]]}
+      ]
+    },
+    {
+      "path": "agents/style.md",
+      "hash": "9330780622baaef8dc683ea78efb3ff8e4583e3dde7ab6092b84df50e8c9ea58",
+      "sources": [
+        {"id":"agents/style","path":"agents/style.md","hash":"3495d6395fd2d33c916b176447bb8509a804a207fdbd21b9ccb3a8ecc438d04a","lines":[[1,6],[14,67]]},
+        {"id":"core-mandates","path":"shared/core-mandates.md","hash":"47741b7ffff629ae14ba6bc5845d86131dc93d2ea7feed2aae28d4dc4ddf9659","lines":[[7,13]]}
+      ]
+    }
+  ]
+}
